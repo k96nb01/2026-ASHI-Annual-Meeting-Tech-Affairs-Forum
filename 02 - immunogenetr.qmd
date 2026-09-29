@@ -1,0 +1,82 @@
+---
+title: "Part 2 - immunogenetr"
+---
+
+# immunogenetr is an R package for the day-to-day work of an HLA lab: cleaning up typing, turning it into GL strings, and counting mismatches. It is on CRAN, so it installs like any other package, and every function has a help page with examples.
+
+```{r}
+library(tidyverse)
+library(immunogenetr)
+```
+
+# Mismatches. In immunogenetr, typing is written as a GL string: alleles at one locus are joined by "+", and loci are joined by "^". Let's start with a recipient and a donor at the A locus. The donor is typed with only one A allele, meaning homozygous (or one allele not detected).
+
+```{r}
+recipient <- "HLA-A*02:01+HLA-A*68:01"
+donor <- "HLA-A*02:01"
+```
+
+# Is there a mismatch? The "direction" argument matters: host-versus-graft (HvG) looks for donor alleles the recipient doesn't have, graft-versus-host (GvH) looks the other way round, "SOT" is the solid organ transplant view (the same as HvG), and "bidirectional" counts a mismatch in either direction. The donor's A*02:01 is also in the recipient, so there is no HvG mismatch; the recipient's A*68:01 is not in the donor, so there is a GvH mismatch.
+
+```{r}
+HLA_mismatch_logical(recipient, donor, loci = "HLA-A", direction = "HvG")
+
+HLA_mismatch_logical(recipient, donor, loci = "HLA-A", direction = "GvH")
+```
+
+# If time allows: which alleles are mismatched, and how many?
+
+```{r}
+HLA_mismatch_alleles(recipient, donor, loci = "HLA-A", direction = "GvH")
+
+HLA_mismatch_number(recipient, donor, loci = "HLA-A", direction = "GvH")
+```
+
+# Real data is usually in a table, with one column per allele. HLA_typing_LIS is an example of what typing looks like when it comes out of a lab information system.
+
+```{r}
+HLA_typing_LIS
+```
+
+# HLA_columns_to_GLstring() turns those columns into a single GL string per patient. The column names have extra text around the locus name ("mA1Cd.recipient"), so we tell the function what to strip off.
+# Two new tricks here: pick(everything()) hands the whole table to the function, and wrapping the whole thing in parentheses ( ) saves the result AND prints it in one step.
+
+```{r}
+(LIS_GL <- HLA_typing_LIS |>
+  mutate(
+    GL_string = HLA_columns_to_GLstring(
+      pick(everything()),  # hand the whole table to the function
+      HLA_typing_columns = mA1Cd.recipient:mDPB12cd.recipient,
+      prefix_to_remove = "m",
+      suffix_to_remove = "Cd.recipient"
+    ),
+    .after = patient
+  ) |>
+  select(patient, GL_string))
+```
+
+# Now a practical question: we have a patient who needs a stem cell transplant (patient 3), and we want to rank everyone else in the table as a potential donor. HLA_match_summary_HCT() gives the classic "out of 10" match grade.
+
+```{r}
+# The GL string of our patient.
+patient_GL <- LIS_GL |>
+  filter(patient == 3) |>
+  pull(GL_string)
+
+LIS_GL |>
+  rename(donor = patient) |>
+  # Put the patient's typing on every row, next to each donor's typing.
+  mutate(patient_GL = patient_GL) |>
+  mutate(match_grade = HLA_match_summary_HCT(
+    patient_GL,
+    GL_string,
+    direction = "bidirectional",
+    match_grade = "Xof10"
+  )) |>
+  select(donor, match_grade) |>
+  arrange(desc(match_grade))
+```
+
+# Patient 3 matches itself 10/10, of course. The others are unrelated (made-up) people, so low match grades are expected. The point is that we got every answer at once, and the same code would work for ten thousand donors.
+
+# A caveat: immunogenetr compares allele names as written. It does not know that two alleles belong to the same P or G group. For that, see py-ard (https://github.com/nmdp-bioinformatics/py-ard).
