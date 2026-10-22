@@ -7,6 +7,7 @@ pak::pkg_install(c(
   "tidyverse",     # data tables: select(), filter(), mutate() and friends
   "immunogenetr",  # HLA typing: GL strings, mismatches, match grades
   "HLAtools",      # the IPD-IMGT/HLA Database: alignments and allele names
+  "httr2",         # talking to web services, like the matching API
   "shiny",         # web apps
   "bslib",         # page layouts for Shiny apps
   "rmarkdown"      # rendering the .qmd files into documents

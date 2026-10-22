@@ -2,27 +2,20 @@
 title: "Part 3 - HLAtools"
 ---
 
-# HLAtools is an R package for working with the IPD-IMGT/HLA Database: allele names, versions, and, most usefully, the sequence alignments. Today we'll use it to look at the amino acid sequences of HLA-DPB1, which sets us up for the app at the end.
+# HLAtools is an R package for working with the IPD-IMGT/HLA Database: allele names, versions, and the sequence alignments. We'll use it to look at HLA-DPB1 protein sequences, which sets us up for the app at the end.
 
 ```{r}
 library(tidyverse)
 library(HLAtools)
 ```
 
-# First, we download the DPB1 protein alignment straight from the IPD-IMGT/HLA Database (this needs an internet connection and takes a few seconds). We ask for a specific database version, so the results are the same every time we run it.
-# The other HLAtools search functions look for the alignments in an object named "HLAalignments", so that's what we call it.
+# Download the DPB1 protein alignment straight from the IPD-IMGT/HLA Database (this needs an internet connection and takes a few seconds). Asking for a specific database version means we get the same answer every time. The other HLAtools functions look for an object named "HLAalignments", so that's what we call it.
 
 ```{r}
 HLAalignments <- alignmentFull(loci = "DPB1", alignType = "prot", version = "3.65.0")
 ```
 
-# What amino acids does DPB1*04:01:01:01 have at positions 84 through 87? This is one of the three major DPB1 antibody epitopes. The answer is written position-then-amino-acid, joined by "~": "84G" means glycine (G) at position 84.
-
-```{r}
-alignmentSearch("prot", "DPB1*04:01:01:01", 84:87)
-```
-
-# Compare a few alleles side by side at the positions that make up the 55 and 84 epitopes.
+# Compare a few alleles side by side at the positions that make up two of the major DPB1 antibody epitopes (55 to 57 and 84 to 87).
 
 ```{r}
 customAlign(
@@ -32,25 +25,6 @@ customAlign(
 )
 ```
 
-# If time allows: where do two alleles differ? compareSequences() lists every position where they are not the same.
+# That used to mean downloading a text file and counting columns by hand. HLAtools has more where that came from: compareSequences() lists every position where two alleles differ, queryPositions() counts the residues at a position across all alleles, and motifMatch() finds every allele carrying a motif. See ?HLAtools.
 
-```{r}
-compareSequences("prot", c("DPB1*04:01:01:01", "DPB1*04:02:01:01"))
-```
-
-# If time allows: how many of the DPB1 alleles in the database have each amino acid at position 84? This counts allele names, not how often each is seen in people. "." means there is no residue there, mostly null alleles whose protein stops early.
-
-```{r}
-queryPositions("prot", "DPB1", 84, table = TRUE)
-```
-
-# And going the other way: which alleles carry the GGPM motif at 84 to 87? Notice that null (N) and questionable (Q) alleles show up too: the motif is in the DNA sequence even if the protein isn't expressed.
-
-```{r}
-motifMatch("DPB1*84G~85G~86P~87M", "prot", full = FALSE) |>  # full = FALSE gives two-field names
-  head(20)
-```
-
-# This is the kind of question that used to mean downloading a text file and counting columns by hand. Now it is one line of code, it is repeatable, and it updates when the database does: just change the version number.
-
-# Next, we will turn this into a small app that anyone in the lab can use, without writing any code. See the "app" folder.
+# Next: turning this into a small app that anyone in the lab can use without writing any code. See the "app" folder.

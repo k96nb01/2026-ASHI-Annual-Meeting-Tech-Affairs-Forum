@@ -2,9 +2,9 @@
 title: "Part 1 - Intro to coding with R"
 ---
 
-# Welcome! In this part we will learn just enough R to read and run the code in the rest of the session. Click the green "play" arrow at the top right of each gray code chunk to run it; the results appear right below the chunk.
+# Welcome! In this part we will learn just enough R to read the code in the rest of the session. Click the green "play" arrow at the top right of each gray code chunk to run it; the results appear right below the chunk.
 
-# First, we load the packages we will use. A package is a set of machines (functions) somebody else built, so we don't have to. The tidyverse is a set of packages for working with data tables, and immunogenetr is a package for working with HLA typing.
+# First, we load the packages we will use. A package is a set of machines (functions) somebody else built, so we don't have to.
 
 ```{r}
 library(tidyverse)
@@ -17,97 +17,47 @@ library(immunogenetr)
 2 + 2
 ```
 
-# Objects: we can store something in an object (think of it as a labeled bin) with the arrow "\<-". Then we can use the name of the bin instead of the thing itself.
-
-```{r}
-allele <- "HLA-A*02:01:01:01"
-
-# Typing the name of an object shows us what is in it.
-allele
-```
-
-# Vectors: an object can hold more than one thing. The function "c()" (for "combine") puts several values together into a vector.
+# Objects: we store something in an object (a labeled bin) with the arrow "\<-", then use the name of the bin instead of the thing itself.
 
 ```{r}
 typing <- c("HLA-A*02:01:01:01", "HLA-A*68:01:02:01", "HLA-B*07:02:01:01")
 
 typing
-
-# How many alleles are in the vector?
-length(typing)
-
-# Pull out the second one with square brackets.
-typing[2]
 ```
 
-# Functions: a function is a machine that takes something in, does something to it, and gives something back. You give the function its input inside the parentheses. HLA_truncate() is a function from immunogenetr that shortens alleles to fewer fields.
+# Functions: a machine that takes something in, does something to it, and gives something back. HLA_truncate() is a function from immunogenetr. Arguments (like "fields") are its settings.
 
 ```{r}
-HLA_truncate(allele)
+HLA_truncate(typing)
 ```
 
-# Functions have options (called "arguments") that change what they do. To see a function's help page, put a "?" in front of its name. The help page lists all the arguments and has examples at the bottom.
+# You can always learn about how a function works by using "?" to open its help page.
 
 ```{r}
 ?HLA_truncate
 ```
 
-```{r}
-# Truncate to one field instead of the default two.
-HLA_truncate(allele, fields = 1)
-
-# Functions work on a whole vector at once; no need to do each allele by hand.
-HLA_truncate(typing)
-```
-
-# The pipe: "\|\>" takes whatever is on its left and feeds it into the function on its right. Read it as "then". It lets us write steps in the order they happen, instead of nesting functions inside each other.
+# The pipe "\|\>" is the conveyor belt: it feeds what's on its left into the function on its right. Read it as "then".
 
 ```{r}
-# Take the typing, THEN truncate it to one field, THEN remove the duplicates.
 typing |>
-  HLA_truncate(fields = 1) |>
-  unique()
+  HLA_truncate() |>
+  first()
 ```
 
-# Data frames: most lab data lives in tables, like a spreadsheet. In R a table is called a data frame (a "tibble" is a tidyverse data frame). immunogenetr comes with a few example tables. HLA_dictionary is a small sample (100 alleles) of the 2008 HLA dictionary, which lists the serologic antigen for each allele.
+# Most lab data lives in tables (data frames). immunogenetr comes with a few examples; HLA_dictionary is a small sample of the 2008 HLA dictionary.
 
 ```{r}
 HLA_dictionary
 ```
 
-# The tidyverse gives us a small set of verbs for working with tables. Each one takes a table in and gives a table back, so they chain together with the pipe.
-
-# select() picks columns
-
-# filter() picks rows
-
-# mutate() makes new columns (or changes existing ones)
+# We can perform several steps in sequence by stringing functions together. The tidyverse verbs filter() (pick rows), mutate() (make columns) and select() (pick columns) are chained together below:
 
 ```{r}
 HLA_dictionary |>
-  # Make a new column with the alleles truncated to two fields.
-  mutate(two_field = HLA_truncate(HLA.Allele)) |>
-  # Keep just the two columns we care about.
-  select(two_field, WHO.Assigned.Type) |>
-  # Keep only the rows for the A11 antigen.
   filter(WHO.Assigned.Type == "A11") |>
-  # Many alleles collapse to the same two-field name; keep one of each.
-  distinct()
+  mutate(two_field = HLA_truncate(HLA.Allele)) |>
+  select(two_field, WHO.Assigned.Type) 
 ```
 
-# Try it yourself: change "A11" above to another antigen in the sample (for example "A3", "B53" or "Null") and run the chunk again. What happens if you misspell it? What about "DR14"? (Look closely at how DR14 is written in the table.)
-
-# One more thing: the result above was printed, and then it fell on the floor. To keep it, assign it to an object.
-
-```{r}
-A11_alleles <- HLA_dictionary |>
-  mutate(two_field = HLA_truncate(HLA.Allele)) |>
-  select(two_field, WHO.Assigned.Type) |>
-  filter(WHO.Assigned.Type == "A11") |>
-  distinct()
-
-# How many two-field A11 alleles are in this sample?
-nrow(A11_alleles)
-```
-
-# That's all the R we need for today: packages, objects, vectors, functions, the pipe, and data frames. Everything else is just more functions.
+# That's all the R we need: packages, objects, functions, the pipe, and tables. Everything else is just more functions, and the rest of today is about the functions people have already built for HLA labs.

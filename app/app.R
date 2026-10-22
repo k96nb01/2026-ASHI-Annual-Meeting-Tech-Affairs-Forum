@@ -30,7 +30,7 @@ library(immunogenetr)  # understands HLA allele names
 ipd_imgt_hla_version <- "3.65.0"
 
 # The allele shown when the app first opens, so the demo starts with a result.
-default_allele <- "DPB1*04:01:01:01"
+default_allele <- "DPB1*04:01"
 
 # The common sequence of each epitope (Morris et al., PMID 39277973).
 # Anything else we find is called "uncommon".
@@ -61,6 +61,17 @@ message("Downloading the DPB1 protein alignment from the IPD-IMGT/HLA Database, 
         ipd_imgt_hla_version, " ...")
 dpb1_alignment <- alignmentFull(loci = "DPB1", alignType = "prot",
                                 version = ipd_imgt_hla_version)[["prot"]][["DPB1"]]
+
+# The list of alleles to choose from. Many alleles differ only in the third or
+# fourth field (changes that don't alter the protein), so we shorten every name
+# to two fields with HLA_truncate() and keep one of each with distinct().
+# keep_suffix = FALSE drops the N/Q suffix, so "04:01" is listed once rather
+# than also as "04:01N"; the epitope function below still works out whether a
+# name is a null allele.
+dpb1_choices <- dpb1_alignment |>
+  mutate(two_field = HLA_truncate(allele_name, keep_suffix = FALSE)) |>
+  distinct(two_field) |>
+  pull(two_field)
 
 
 # --- 4. The epitope function -------------------------------------------------
@@ -200,7 +211,7 @@ ui <- page_sidebar(
   sidebar = sidebar(
     width = 320,
     # The choices are filled in by the server (see below), because a list of
-    # about 3,000 alleles is too long to send to the browser all at once.
+    # about 2,000 alleles is too long to send to the browser all at once.
     selectizeInput("allele", "Choose a DPB1 allele",
                    choices = NULL,
                    options = list(
@@ -230,7 +241,7 @@ ui <- page_sidebar(
                    )),
     helpText(paste0("Type a name, for example 04:01 (the DPB1* prefix is ",
                     "optional). Press Enter to look up exactly what you ",
-                    "typed, or click a full allele name in the list.")),
+                    "typed, or click an allele in the list.")),
     hr(),
     p(strong("Epitopes"), " (Morris et al., PMID 39277973):"),
     tags$ul(
@@ -259,7 +270,7 @@ server <- function(input, output, session) {
   # Fill the allele list. server = TRUE means the browser only receives the
   # alleles that match what the user is typing ("server-side selectize").
   updateSelectizeInput(session, "allele",
-                       choices = dpb1_alignment$allele_name,
+                       choices = dpb1_choices,
                        selected = default_allele,
                        server = TRUE)
 

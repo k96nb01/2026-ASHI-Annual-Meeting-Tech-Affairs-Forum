@@ -24,9 +24,9 @@ To run the code on your own computer instead, install R and RStudio, open
 
 | File | What it covers |
 |---|---|
-| `01 - Intro to coding with R.qmd` | Just enough R: objects, vectors, functions, the pipe, and data tables |
-| `02 - immunogenetr.qmd` | The [immunogenetr](https://cran.r-project.org/package=immunogenetr) package: GL strings, mismatches, ranking donors by match grade |
-| `03 - HLAtools.qmd` | The [HLAtools](https://cran.r-project.org/package=HLAtools) package: searching the IPD-IMGT/HLA Database protein alignments, using HLA-DPB1 as the example |
+| `01 - Intro to coding with R.qmd` | Just enough R to read the code: objects, functions, the pipe, and data tables |
+| `02 - immunogenetr.qmd` | The [immunogenetr](https://cran.r-project.org/package=immunogenetr) package and the [immunogenetr matching API](https://api.immunogenetr.org/__docs__/): GL strings, ranking donors by X/10 match grade, and P group matching (as used by <https://hct-report.immunogenetr.org>) |
+| `03 - HLAtools.qmd` | The [HLAtools](https://cran.r-project.org/package=HLAtools) package: comparing HLA-DPB1 protein sequences from the IPD-IMGT/HLA Database |
 | `app/app.R` | A Shiny app that shows the three major antibody epitopes (55, 84, 96/170) of any HLA-DPB1 allele |
 | `PROMPT.md` | The prompt used to have an AI coding agent build the app |
 | `agent-log.md` | The conversation with the agent, from prompt to working app |
