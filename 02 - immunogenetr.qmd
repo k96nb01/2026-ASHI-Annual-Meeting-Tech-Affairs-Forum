@@ -78,4 +78,4 @@ request("https://api.immunogenetr.org/match/hct") |>
   str()
 ```
 
-# 10/10, and the answer records exactly which database and software versions produced it. Because it's a web service, anything can use it, not just R. For example, https://hct-report.immunogenetr.org builds a one-page donor match report on top of this API, with no coding at all.
+# 8/8, and the answer records exactly which database and software versions produced it. Because it's a web service, anything can use it, not just R. For example, https://hct-report.immunogenetr.org builds a one-page donor match report on top of this API, with no coding at all.
